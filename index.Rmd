@@ -3,7 +3,7 @@
 
 <link rel="stylesheet" href="styles.css" type="text/css">
 
-<img src="images/emily_2.jpg" style="width:25%; border:10px solid; margin-right: 20px" align="left">
+<img src="images/DSC_2598.jpg" style="width:25%; border:10px solid; margin-right: 20px" align="left">
 
 I like to analyze data to answer research questions and test hypotheses. Currently I investigate questions related to breast cancer through my work as a Research Biostatistician at [Memorial Sloan Kettering Cancer Center](https://www.mskcc.org/departments/epidemiology-biostatistics) in the department of Epidemiology & Biostatistics. 
 
