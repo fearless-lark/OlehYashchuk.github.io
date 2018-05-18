@@ -3,17 +3,17 @@ output_dir: "."
 navbar:
   title: "Oleh Yashchuk"
   left:
-    - text: "Writing"
+    - text: "Research"
       href: research.html
-    - text: "Speaking"
+    - text: "Talks"
       href: talks.html
-    - text: "Programming"
-      href: software.html
+    - text: "Courses"
+      href: courses.html
     - text: "Teaching"
       href: teaching.html
   right:
     - icon: fa-envelope fa-lg
-      href: contact.html
+      href: contacts.html
     - icon: fa-github fa-lg
       href: https://github.com/OlehYashchuk
     - icon: fa-twitter fa-lg
