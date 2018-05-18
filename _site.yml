@@ -3,14 +3,16 @@ output_dir: "."
 navbar:
   title: "Oleh Yashchuk"
   left:
-    - text: "Research"
-      href: research.html
-    - text: "Talks"
-      href: talks.html
-    - text: "Courses"
-      href: courses.html
-    - text: "Teaching"
-      href: teaching.html
+#    - text: "Research"
+#      href: research.html
+#    - text: "Talks"
+#      href: talks.html
+#    - text: "Courses"
+#      href: courses.html
+#    - text: "Teaching"
+#      href: teaching.html
+    - text: "CarMarket"
+      href: CarsEda.html
   right:
     - icon: fa-envelope fa-lg
       href: contacts.html
