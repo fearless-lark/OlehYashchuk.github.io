@@ -1,0 +1,380 @@
+---
+title: "Lanos Model Analysis"
+author: "O.Yashchuk"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '4'
+  html_notebook:
+    code_folding: hide
+    highlight: tango
+    number_sections: yes
+    theme: default
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r include=FALSE}
+source("../header.R")
+
+load("../data/car_base_clean.RData")
+
+source("../Rscripts/report_script.R")
+data <- copy(cars)
+```
+
+# Количество автомобилей в разрезе основных характеристик
+
+```{r echo=FALSE}
+tmp <- data[, 
+            .(Cars = .N, 
+              "%" = round(.N/nrow(data)*100, 2)), 
+            by = list("Тип топлива" = autoData.fuelNameEng)]
+kable(tmp)
+```
+
+```{r echo=FALSE}
+tmp <- data[, 
+            .(Cars = .N, "%" = round(.N/nrow(data)*100, 2)), 
+            by = list("Тип кузова" = autoData.subCategoryNameEng)]
+kable(tmp)
+```
+
+```{r echo=FALSE}
+tmp <- data[, 
+            .(Cars = .N, "%" = round(.N/nrow(data)*100, 2)), 
+            by = list("Коробка передач" = autoData.gearboxName)]
+kable(tmp)
+```
+
+```{r echo=FALSE}
+tmp <- data[, 
+            .(Cars = .N, "%" = round(.N/nrow(data)*100, 2)), 
+            by = list("Объём двигателя" = autoData.fuelName)]
+kable(tmp)
+```
+
+```{r echo=FALSE}
+tmp <- data[, 
+            .(Cars = .N, "%" = round(.N/nrow(data)*100, 2)), 
+            by = list("Призводитель марки" = markName)]
+kable(tmp)
+```
+
+Предварительные общие выводы:
+
+* $2/3$ всех машины данной марки оборудованы ГБО установкой
+* подавляющее большинство машин имеют кузов седан
+* доля авто с автоматической коробкой передач очень мала
+* самый распространённые объём двигателя - $1.5л$ (3 машины из 4), и примерно каждая 4-я машина имеет двигатель объёмом $1.4л$ или $1.6л$. Двигатели объёмом $1.3л$ встречаются очень редко (одна машина из ста).
+* Daewoo является самым массовым производителем данной модели авто. Незначительную часть занимает ЗАЗ, и совсем считаные единицы произвёл Chevrolet.
+
+# Общие тенденции и характеристики
+
+Общее распределение цены автомобилей выглядит следующим образом.
+```{r echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = USD)) +
+        geom_density(alpha = .4, fill = ggsci::pal_lancet("lanonc")(1)) +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               size = FALSE) +
+  labs(y = "Density") +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        scale_x_continuous(breaks = seq(0, 8000, 1000)) +
+        scale_y_continuous(breaks = seq(-1, 8000, 1000)) +
+  
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+Из графика видно, что больше всего автомобилей на рынке представленно по цене 3500$.
+
+Распределение возраста автомобилей представленно на следующем графике.
+
+```{r echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = age)) +
+        geom_density(alpha = .4, fill = ggsci::pal_lancet("lanonc")(1)) +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               size = FALSE) +
+  labs(y = "Density", x = "Age") +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        scale_x_continuous(breaks = seq(0, out_age, 1)) +
+        scale_y_continuous(breaks = seq(-1, 8000, 1000)) +
+  
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+То есть, типичный возраст автомобилей лежит в рамках от 9 до 15 лет.
+
+Распределение пробега автомобилей представленно на следующем графике.
+
+```{r echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = autoData.raceInt)) +
+        geom_density(alpha = .4, fill = ggsci::pal_lancet("lanonc")(1)) +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               size = FALSE) +
+  labs(y = "Density", x = "Пробег, тыс.км.") +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        scale_x_continuous(breaks = seq(0, 1000, 100)) +
+        scale_y_continuous(breaks = seq(-1, 8000, 1000)) +
+  
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+Типичный пробег для автомобилей находится в диапазоне от 75 до 200 тыс.км.
+
+Рассмотрим зависимость цены от различных показателей.
+
+# Анализ стоимости авто
+
+Общее распределение цены и возраста авто выглядит следующим образом. Распределение имеет тенденцию к линейной зависимости рассматриваемых переменных.
+
+
+```{r общее представление USD/age, echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = age,
+                  y = USD)) +
+        geom_jitter(alpha = .3, color = ggsci::pal_lancet("lanonc")(1)) +
+        scale_color_economist() +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               size = FALSE) +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        scale_x_continuous(breaks = seq(0, out_age, 1)) +
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+
+На графике видна чёткая закономерность снижения стоимости авто с возрастом.
+
+Распределение цены и пробега авто также имеет линейную тенденцию и выглядит следующим образом. 
+```{r общее представление USD/race, echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = autoData.raceInt,
+                  y = USD)) +
+        geom_jitter(alpha = .3, color = ggsci::pal_lancet("lanonc")(1)) +
+        # scale_color_economist() +
+  ggsci::scale_color_lancet() +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               size = FALSE) +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+***Благодаря наблюдению склонности к линейной тенденции, появляется возможность применить множественную линейную регрессию для описания закона изминения цены на автомобиль от раличных параметров автомобиля.***
+
+Проверим, как влияют различные параметры на стоимость авто. Для этого построим регрессионные прямые для наборов факторов каждого показателя.
+
+## Цена / тип кузова
+Цена авто на хэтчбэк выше чем на седан. Но, разница в цене не значительна, а доля хэтчбэков всего `r paste0((data$autoData.subCategoryNameEng %>% table() %>% sort() %>% prop.table()*100) %>% min() %>% round(., digits = 2), "%")`. Соответственно, возможно в последствии продать хэтчбэк будет сложнее.
+
+```{r USD/age/autoData.subCategoryNameEng, echo=FALSE, fig.align = "center"}
+color_var <- "autoData.subCategoryNameEng"
+gg_car(data, x = "age", y ="USD", color_var = color_var, xmax = out_age)
+```
+
+## Цена / тип топлива
+Установка ГБО не влияет на цену авто, поэтому можно приобрести авто с ГБО установкой по цене бензинового типа. Причём, авто с ГБО установкой составляют 2/3 всех предложений данной марки.
+
+```{r USD/age/autoData.fuelNameEng, echo=FALSE, fig.align = "center"}
+color_var <- "autoData.fuelNameEng"
+gg_car(data, x = "age", y ="USD", color_var = color_var, xmax = out_age)
+```
+
+## Цена / тип коробки передач
+Автоматическая коробка передач встречается всего в `r paste0((data$autoData.gearboxName %>% table() %>% sort() %>% prop.table()*100) %>% min() %>% round(., digits = 2), "%")` случаев для данной марки (`r paste0((data$autoData.gearboxName %>% table() %>% sort()) %>% min() %>% round(., digits = 2))` объявления). Поэтому, нет смысла детально рассматривать данный разрез.
+
+Хотя поверхностный анализ говорит, что машины с автоматической коробкой передач дороже механических аналогов на примерно 800$.
+
+```{r USD/age/autoData.gearboxName, echo=FALSE, fig.align = "center"}
+color_var <- "autoData.gearboxName"
+gg_car(data, x = "age", y ="USD", color_var = color_var, xmax = out_age)
+```
+
+## Цена / объём двигателя
+```{r USD/age/autoData.fuelName, echo=FALSE, fig.align = "center"}
+color_var <- "autoData.fuelName"
+gg_car(data, x = "age", y ="USD", color_var = color_var, xmax = out_age)
+```
+
+* Имеем возможно визуально убедится в том, что двигатели объёмом $1.5л$ являются самыми распространёнными. 
+* Интересно заметить, что почти всё машины с объёмом двигателя $1.6л$ старше 10 лет
+* А типичный возраст для машин с объёмом двигателя $1.4л$ - 10-11 лет
+* В тоже время все машины с объёмом двигателя $1.3л$ моложе 6 лет, но в целом их количество незначительно
+
+## Цена / производитель
+```{r USD/age/markName, echo=FALSE, fig.align = "center"}
+color_var <- "markName"
+gg_car(data, x = "age", y ="USD", color_var = color_var, xmax = out_age)
+```
+
+На графике видно, что машины марки Daewoo в основном имею возраст больше 10 лет. Машины младше 10 лет производились заводом ЗАЗ. И колиечство машин марки Chevrolete имеют незначительное кол-во представителей.
+
+# Модель множественной линейной регресси от основных характеристик
+
+Проанализируем влияние каждого из рассмотреных показателей автомобиля на его цену $(USD)$. Применим метод множественной линейной регрессии.
+
+```{r линейная регрессия, include=FALSE}
+# reg <- data %>% lm(USD ~ age + 
+#                        markName +
+#                        autoData.raceInt + 
+#                        autoData.fuelName +
+#                        autoData.fuelNameEng +
+#                        autoData.gearboxName +
+#                        autoData.subCategoryNameEng, .)
+# kable(reg %>% broom::tidy)
+# summary(reg)
+# a <- sjt.lm(reg, no.output = TRUE)
+reg_coef_table <- sjt.lm(reg, no.output = TRUE)
+```
+
+`r reg_coef_table`
+
+-----
+
+Анализ таблицы линейной регрессии:
+    
+* Коэфициенты $B_{i}$ показывают изминение стоимости авто в зависимости от каждого фактора. 
+* В колонке $CI$  - доверительные интервалы для коэфициентов $B_{i}$. 
+* Значение $p$ указывает на значимость коэфициента. Если $p > 0.5$ коэфициент является незначимым для данной модели.
+
+## Интерпретация коефициентов модели
+<!-- * Довертельные интервалы для коэфициентов модели -->
+<!-- ```{r echo=FALSE} -->
+<!-- kable(confint(reg)) -->
+<!-- ``` -->
+
+Модели линейной регрессии достаточно простые, но имею одно существенное преимущество перед большинством более сложных методов. Преимущество заключается в простоте и интуитивности интерпрретации модели.
+
+Посмотрим, какие можно сделать выводы смотря на таблицу коэфициентов модели.
+
+Коэфициент $B_0$ он же $(Intercept)$ показывает стоимость автомобиля при установлении всех показателей на базовый уровень:
+
+* возраст авто $0~лет$
+* пробег $0~км$
+* объём двигателя $1.3л$
+* только бензин
+* механика
+* седан
+
+Итак, вывод:
+
+* базовая стоимость авто $`r reg$coefficients["(Intercept)"] %>% round()`$ USD
+* с каждым годом авто изменяется в цене на $`r reg$coefficients["age"] %>% round()`$ USD
+* за авто с двигателем объёмом $1.5л$ придётся доплатить $`r reg$coefficients["autoData.fuelName1.5л."] %>% round()`$ USD а за авто с двигателем $1.6л$ $`r reg$coefficients["autoData.fuelName1.6л."] %>% round()`$ USD
+* автомобили с установленным ГБО не отличаются в цене от исключительно бензиновых аналогов
+* машина с автоматической коробкой передач будет отличатся от механической на $`r reg$coefficients["autoData.gearboxNameАвтомат"] %>% round()`$ USD
+* цена на авто в кузове хэтчбэк отличается от цены на кузов седан на $`r reg$coefficients["autoData.subCategoryNameEngkhetchbek"] %>% round()`$ USD
+
+<!-- Выводы согласно модели -->
+
+<!-- * С каждым годом цена на авто падает на `130$` -->
+<!-- * С каждой тысячей километров цена на авто падает на `3.2$` -->
+<!-- * Машины с ручной коробкой передач стоят на `836$` дешевле аналогов с автоматической коробкой -->
+<!-- * Машины с установленным ГБО не отличаются в цене от автомобилей без ГБО (показатель модели не значим) -->
+<!-- * Машины в кузове "седан" дешевле "хэтчбэков" на `200$` -->
+
+## Визуальный анализ модели
+
+```{r lm USD/age, echo=FALSE, fig.align = "center"}
+ggplot(data, aes(x = age,
+                  y = USD)) +
+        geom_jitter(alpha = .5, color = ggsci::pal_lancet("lanonc")(1)) +
+        geom_smooth(method = "lm", 
+                    color = ggsci::pal_lancet("lanonc")(2)[2], 
+                    alpha = .2, se = FALSE) +
+        geom_rangeframe() + 
+        guides(fill = FALSE,
+               color = guide_legend(paste0(color_var, ":"), 
+                                    nrow = 1, byrow = TRUE), 
+               size = FALSE) +
+        theme_tufte(base_size = 14, 
+                              base_family = "Helvetica",
+                              ticks = TRUE) +
+        scale_x_continuous(breaks = seq(0, out_age, 1)) +
+        theme(legend.position = "top", legend.direction = "horizontal") +
+        theme(panel.grid.major = element_line(colour="lightgray", size=0.3),
+              panel.grid.minor = element_line(colour="lightgray", size=0.3))
+```
+
+# Сколько стоит авто подходящее необходимым требованиям?
+##  Механика расчёт стоимости согласно модели множественной линейной регрессии
+Допустим мы хотим купить авто анализируемой модели. Введём основные параметры которые нас интересуют.
+
+К примеру. Мы хотим купить авто по следующим требованиям:
+
+* авто младше 10 лет
+* пробег меньше 100 тыс. км.
+* механическая коробка передач
+* установленное ГБО
+* двигатель 1.5л
+
+Рассчитаем стоимость авто по данным требованиями согласно полученой модели.
+```{r}
+wanted_years <- 10 # Максимальный возраст авто
+wanted_race <- 100 # Максимальный пробег
+wanted_gear <- 1 # Авто имеет ручную коробку передач (да - 1, нет - 0)?
+wanted_body <- 1 # Авто имеет кузов седан (да - 1, нет - 0)?
+wanted_gearType1.5 <- 1
+```
+
+$$x = Intercept - coef_{age}*wanted_{years} + \\ coef_{autoData.raceInt}*wanted_{race} + \\ coef_{autoData.gearboxName}*wanted_{gear} + \\
+coef_{autoData.fuelName}*wanted_{gearType} + \\
+coef_{autoData.subCategory}*wanted_{body} = \\ 
+`r round(reg$coefficients["(Intercept)"],2)` +
+`r round(reg$coefficients["age"],2)`*wanted_{years} + \\ 
+`r round(reg$coefficients["autoData.raceInt"],2)`*wanted_{race} + \\ `r round(reg$coefficients["autoData.gearboxNameАвтомат"],2)`*wanted_{gear} + \\ 
+`r round(reg$coefficients["autoData.fuelName1.5л."],2)`*wanted_{gearType} + \\ 
+`r round(reg$coefficients["autoData.subCategoryNameEngkhetchbek"],2)`*wanted_{body} = \\`r round(reg$coefficients["(Intercept)"] + wanted_years*reg$coefficients["age"] + wanted_race*reg$coefficients["autoData.raceInt"] + wanted_gear*reg$coefficients["autoData.gearboxNameАвтомат"] +
+wanted_gearType1.5*reg$coefficients["autoData.fuelName1.5л."] +
+wanted_body*reg$coefficients["autoData.subCategoryNameEngkhetchbek"])`$$
+
+Итак, авто с данными параметрами должно стоить ориентировочно `r paste0(round(reg$coefficients["(Intercept)"] + wanted_years*reg$coefficients["age"] + wanted_race*reg$coefficients["autoData.raceInt"] + wanted_gear*reg$coefficients["autoData.gearboxNameАвтомат"] +
+wanted_gearType1.5*reg$coefficients["autoData.fuelName1.5л."] + +wanted_body*reg$coefficients["autoData.subCategoryNameEngkhetchbek"], 0), "$")`.
+
+Теперь, предположим, что нас интересует более новое авто, к примеру, возрастом до 5 лет. Поменяем необходимый параметр и посмотрим на какую стоимость мы можем рассчитывать. 
+
+```{r}
+wanted_years_2 <- 5 # Максимальный возраст авто
+```
+
+По аналогичной формуле стоимость такого авто ориентировочно равна `r  paste0(round(reg$coefficients["(Intercept)"] + wanted_years_2*reg$coefficients["age"] + wanted_race*reg$coefficients["autoData.raceInt"] + wanted_gear*reg$coefficients["autoData.gearboxNameАвтомат"] +
+wanted_gearType1.5*reg$coefficients["autoData.fuelName1.5л."] +
+wanted_body*reg$coefficients["autoData.subCategoryNameEngkhetchbek"], 0), "$")`.
+
+## Оценка стоимости авто по заданым параметрам
+
+Отойдём от математической части оценки стоимости автомобилей и воспользуемся средаствами языка R для автоматической оценки.
+
+```{r иаблица для предсказания, echo=FALSE}
+kable(data_predict)
+```
+
+# Вывод
+С бюджетом в 5000$ можно расчитывать на хороший автомобиль возрастом до 5 лет, с пробегом до 100 тыс.км., объёмом двигателя 1.5л, с механической коробкой передач и установленным ГБО.
+
+С бюджетом в 6000$ можно рассматривать автомобили с аналогичными характеристиками, но с автоматической коробкой передач. Но, строго говоря, вероятность найти авто с двигателем 1.5 литров и автоматической коробкой автомат очень мала. Таких вариантов авто продавалось всего 5 экземпляров. И у всех из них был пробег больше 100 тыс.км. А вот найти аналоги с двигателем меньшего объёма вполне реально.

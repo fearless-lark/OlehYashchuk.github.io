@@ -10,6 +10,14 @@ library(purrr)
 library(rvest)
 library(jsonlite)
 
+library(ggthemes)
+library(ggplot2)
+
+library(knitr)
+library(sjPlot)
+
+library(caret)
+
 # library(tidyverse) # dbplyr-ggplot2-tibble-readr-tidyr-purr-stringr-forcats
 
 # periods -----------------------------------------------------------------

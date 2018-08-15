@@ -12,10 +12,11 @@ navbar:
 #    - text: "Teaching"
 #      href: teaching.html
     - text: "CarMarket"
-      href: CarsEda.html
+      href: ./carmarket_pages/lanos.html
+      # href: CarsEda.html
   right:
     - icon: fa-envelope fa-lg
-      href: contacts.html
+      href: https://github.com/OlehYashchuk
     - icon: fa-github fa-lg
       href: https://github.com/OlehYashchuk
     - icon: fa-twitter fa-lg
