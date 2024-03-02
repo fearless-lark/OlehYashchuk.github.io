@@ -21,6 +21,10 @@ body {
 	top: 0;
 	left: 0;
 	overflow: hidden;
+	display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100vh; /* Make sure the body takes up at least the viewport height */
 }
 
 .main {
@@ -48,9 +52,23 @@ body {
 }
 
 .sub-title {
-  border-top: .1rem solid #fff;
-  padding: 1rem 4rem;
+	border-top: .1rem solid #fff;
+	padding: 1rem 4rem;
 	text-align: center;
+}
+
+.modernization-message {
+    color: #ecf0f1;
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2rem;
+    margin-top: auto; /* Push to the bottom */
+}
+
+.modernization-message p {
+    max-width: 800px; /* Adjust the width as needed */
+    margin: 20px auto; /* Center the text block horizontally and add space */
+    line-height: 1.6; /* Improve readability */
 }
 
 
